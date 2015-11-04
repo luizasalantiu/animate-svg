@@ -16,7 +16,10 @@ var AnimateSvg = (function($) {
     /* ------------------- Default options ------------------- */
 
     var generalDefaultOpts = {
+        // by default, all paths will be animated. user can provide other selectors to target specific elements
         selector: 'path',
+        // only elements of type path are supported at the moment
+        animatable: 'path',
         // flag indicating whether or not svg starts as hidden
         hidden: true
     };
@@ -65,6 +68,12 @@ var AnimateSvg = (function($) {
         return module;
     };
 
+    module.setRoot = function($elem) {
+        $svg = $elem;
+
+        return module;
+    };
+
     /**
      * Setup paths to allow clearing of strokes later.
      */
@@ -76,6 +85,8 @@ var AnimateSvg = (function($) {
             });
         });
     }
+
+
 
     /**
      * Hides svg path strokes and fills.
@@ -94,7 +105,7 @@ var AnimateSvg = (function($) {
 
         var selector = isDefined(opts) ? opts.selector : generalDefaultOpts.selector;
 
-        var $pathElements = $elem.find(selector).addBack(selector);
+        var $pathElements = getAnimatableElements($elem, selector);
         $pathElements.each(function() {
             var length = this.getTotalLength();
             $(this).css({
@@ -164,7 +175,7 @@ var AnimateSvg = (function($) {
      */
     module.drawStrokes = function(param1, param2) {
         var opts = computeOpts(param1, param2, drawStrokesDefaultOpts);
-        var $paths = $svg.find(opts.selector).addBack(opts.selector);
+        var $paths = getAnimatableElements($svg, opts.selector);
         var params = {
             "stroke-dashoffset": 0
         };
@@ -183,7 +194,7 @@ var AnimateSvg = (function($) {
      */
     module.clearStrokes = function(param1, param2) {
         var opts = computeOpts(param1, param2, clearStrokesDefaultOpts);
-        var $paths = $svg.find(opts.selector).addBack(opts.selector);
+        var $paths = getAnimatableElements($svg, opts.selector);
 
         $paths.each(function(i, path) {
             var length = this.getTotalLength();
@@ -206,7 +217,7 @@ var AnimateSvg = (function($) {
      */
     module.fillIn = function(param1, param2) {
         var opts = computeOpts(param1, param2, fillInDefaultOpts);
-        var $paths = $svg.find(opts.selector).addBack(opts.selector);
+        var $paths = getAnimatableElements($svg, opts.selector);
         var params = {
             "fillOpacity": 1
         };
@@ -225,7 +236,7 @@ var AnimateSvg = (function($) {
      */
     module.clearFill = function(param1, param2) {
         var opts = computeOpts(param1, param2, clearFillDefaultOpts);
-        var $paths = $svg.find(opts.selector).addBack(opts.selector);
+        var $paths = getAnimatableElements($svg, opts.selector);
         var params = {
             "fillOpacity": 0
         };
@@ -234,6 +245,14 @@ var AnimateSvg = (function($) {
 
         return module;
     };
+
+    /**
+     * Returns all animatable elements under and including an element identified by the selector provided.
+     */
+    function getAnimatableElements($parent, selector) {
+        var $targeted = $parent.find(selector).addBack(selector);
+        return $targeted.find(generalDefaultOpts.animatable).addBack(generalDefaultOpts.animatable);
+    }
 
     function isDefined(arg) {
         return typeof arg !== 'undefined';
